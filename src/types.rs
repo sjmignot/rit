@@ -136,13 +136,31 @@ impl GitObject {
         hex::encode(hasher.finalize())
     }
     pub fn pretty_print(&self) -> anyhow::Result<()> {
-        println!("Type: {}", self.object_type);
-        println!("Size: {}", self.object_size);
-        println!("Hash: {}", self.hash());
-        println!(
-            "Content: {}",
-            String::from_utf8(self.object_content.clone()).context("Failed to parse content")?
-        );
+        match self.object_type {
+            ObjectType::Blob => {
+                print!(
+                    "{}",
+                    String::from_utf8(self.object_content.clone())
+                        .context("Failed to parse content")?
+                );
+            }
+            ObjectType::Tree => {
+                self.object_content
+                    .iter()
+                    .take_while(|byte| **byte != 0)
+                    .collect()
+                    .split(|byte| **byte == 0)
+                    .for_each(|entry| {
+                        let (mode, name) = entry.split_once(|byte| *byte == b' ').unwrap();
+                        let mode = String::from_utf8(mode.to_vec()).unwrap();
+                        let name = String::from_utf8(name.to_vec()).unwrap();
+                        println!("{} {}", mode, name);
+                    });
+            }
+            _ => {
+                anyhow::bail!("Not implemented");
+            }
+        }
         Ok(())
     }
 }
