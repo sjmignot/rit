@@ -38,13 +38,16 @@ impl GitObject {
         object_handler
             .read_until(b'\0', &mut header)
             .context("Failed to read header")?;
-
+        header.truncate(header.len() - 1);
         let header = String::from_utf8(header).context("Failed to parse header")?;
+
+        // print header as bytes
         let (object_type_str, object_size_str) = header
             .split_once(' ')
             .ok_or(anyhow::anyhow!("Failed to split header"))?;
 
         let object_size = object_size_str
+            .trim()
             .parse::<usize>()
             .context("Failed to parse object size")?;
 
@@ -101,7 +104,6 @@ impl GitObject {
         let path = format!(".git/objects/{}/{}", object_folder, object_file);
 
         if file_len == 40 {
-            eprint!("path: {}", path);
             File::open(&path).context("Failed to open file: {path}")
         } else {
             let mut hash_match = glob(&format!("{}{}", path, "*")).expect("failed to get paths");
@@ -145,17 +147,39 @@ impl GitObject {
                 );
             }
             ObjectType::Tree => {
-                self.object_content
-                    .iter()
-                    .take_while(|byte| **byte != 0)
-                    .collect()
-                    .split(|byte| **byte == 0)
-                    .for_each(|entry| {
-                        let (mode, name) = entry.split_once(|byte| *byte == b' ').unwrap();
-                        let mode = String::from_utf8(mode.to_vec()).unwrap();
-                        let name = String::from_utf8(name.to_vec()).unwrap();
-                        println!("{} {}", mode, name);
-                    });
+                let mut content_iterator = self.object_content.clone().into_iter();
+                while content_iterator.len() > 0 {
+                    let mode: Vec<u8> = content_iterator
+                        .by_ref()
+                        .take_while(|&x| x != 32)
+                        .collect::<Vec<_>>();
+                    let name: Vec<u8> = content_iterator
+                        .by_ref()
+                        .take_while(|&x| x != 0)
+                        .collect::<Vec<_>>();
+                    let sha: Vec<u8> = content_iterator.by_ref().take(20).collect::<Vec<_>>();
+                    println!(
+                        "{} {} {}",
+                        String::from_utf8(mode)?,
+                        String::from_utf8(name)?,
+                        hex::encode(sha)
+                    );
+                }
+                let mode: Vec<u8> = content_iterator
+                    .by_ref()
+                    .take_while(|&x| x != 32)
+                    .collect::<Vec<_>>();
+                let name: Vec<u8> = content_iterator
+                    .by_ref()
+                    .take_while(|&x| x != 0)
+                    .collect::<Vec<_>>();
+                let sha: Vec<u8> = content_iterator.by_ref().take(20).collect::<Vec<_>>();
+                print!(
+                    "{} {} {}",
+                    String::from_utf8(mode)?,
+                    String::from_utf8(name)?,
+                    hex::encode(sha)
+                );
             }
             _ => {
                 anyhow::bail!("Not implemented");
