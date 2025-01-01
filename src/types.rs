@@ -159,7 +159,7 @@ impl GitObject {
                         _ => "blob",
                     };
                     println!(
-                        "{:<6} {} {} {}",
+                        "{:<6} {} {}    {}",
                         String::from_utf8(mode)?,
                         object_type,
                         hex::encode(sha),
