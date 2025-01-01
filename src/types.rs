@@ -117,7 +117,7 @@ impl GitObject {
                 anyhow::bail!("Multiple files found for hash {}", object_hash);
             }
             let file = File::open(&path).context("Failed to open file")?;
-            return Ok(file);
+            Ok(file)
         }
     }
 
@@ -129,11 +129,7 @@ impl GitObject {
 
     pub fn hash(&self) -> String {
         let mut hasher = Sha1::new();
-        hasher.update(format!(
-            "{} {}\x00",
-            self.object_type.to_string(),
-            self.object_size
-        ));
+        hasher.update(format!("{} {}\x00", self.object_type, self.object_size));
         hasher.update(&self.object_content);
         hex::encode(hasher.finalize())
     }
@@ -159,7 +155,7 @@ impl GitObject {
                         .collect::<Vec<_>>();
                     let sha: Vec<u8> = content_iterator.by_ref().take(20).collect::<Vec<_>>();
                     println!(
-                        "{} {} {}",
+                        "{:<6} {:<18} {}",
                         String::from_utf8(mode)?,
                         String::from_utf8(name)?,
                         hex::encode(sha)
