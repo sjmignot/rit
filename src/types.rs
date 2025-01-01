@@ -154,28 +154,18 @@ impl GitObject {
                         .take_while(|&x| x != 0)
                         .collect::<Vec<_>>();
                     let sha: Vec<u8> = content_iterator.by_ref().take(20).collect::<Vec<_>>();
+                    let object_type = match mode.as_slice() {
+                        b"40000" => "tree",
+                        _ => "blob",
+                    };
                     println!(
-                        "{:<6} {:<18} {}",
+                        "{:<6} {} {} {}",
                         String::from_utf8(mode)?,
+                        object_type,
+                        hex::encode(sha),
                         String::from_utf8(name)?,
-                        hex::encode(sha)
                     );
                 }
-                let mode: Vec<u8> = content_iterator
-                    .by_ref()
-                    .take_while(|&x| x != 32)
-                    .collect::<Vec<_>>();
-                let name: Vec<u8> = content_iterator
-                    .by_ref()
-                    .take_while(|&x| x != 0)
-                    .collect::<Vec<_>>();
-                let sha: Vec<u8> = content_iterator.by_ref().take(20).collect::<Vec<_>>();
-                print!(
-                    "{} {} {}",
-                    String::from_utf8(mode)?,
-                    String::from_utf8(name)?,
-                    hex::encode(sha)
-                );
             }
             _ => {
                 anyhow::bail!("Not implemented");
