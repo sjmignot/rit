@@ -5,23 +5,17 @@ use flate2::Compression;
 use glob::glob;
 use hex;
 use sha1::{Digest, Sha1};
-use std::fmt;
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Read, Write};
+use strum::Display;
 
-#[derive(Debug)]
+#[derive(Debug, Display)]
+#[strum(serialize_all = "snake_case")]
 pub enum ObjectType {
     Commit,
     Tree,
     Blob,
     Tag,
-}
-impl fmt::Display for ObjectType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self)
-        // or, alternatively:
-        // fmt::Debug::fmt(self, f)
-    }
 }
 
 #[derive(Debug)]
@@ -177,8 +171,6 @@ impl GitObject {
 
 #[cfg(test)]
 mod tests {
-    use sha1::digest::typenum::assert_type;
-
     use super::*;
     use std::io::{Seek, SeekFrom, Write};
 
@@ -187,10 +179,10 @@ mod tests {
         let mut tmp_file = tempfile::NamedTempFile::new().unwrap();
         tmp_file.write_all(b"blob 5\x00hello").unwrap();
         tmp_file.seek(SeekFrom::Start(0)).unwrap();
-        let result = GitObject::from_file(&mut tmp_file);
+        let result = GitObject::from_file(&mut BufReader::new(tmp_file));
         assert!(result.is_ok());
         let object = result.unwrap();
-        assert_eq!(object.object_type, ObjectType::Blob);
+        assert_eq!(object.object_type.to_string(), "blob");
         assert!(object.object_size == 5);
         assert!(object.object_content == b"hello");
     }
