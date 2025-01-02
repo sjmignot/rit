@@ -127,7 +127,7 @@ impl GitObject {
         hasher.update(&self.object_content);
         hex::encode(hasher.finalize())
     }
-    pub fn pretty_print(&self) -> anyhow::Result<()> {
+    pub fn pretty_print(&self, name_only: bool) -> anyhow::Result<()> {
         match self.object_type {
             ObjectType::Blob => {
                 print!(
@@ -152,13 +152,17 @@ impl GitObject {
                         b"40000" => "tree",
                         _ => "blob",
                     };
-                    println!(
-                        "{:<6} {} {}    {}",
-                        String::from_utf8(mode)?,
-                        object_type,
-                        hex::encode(sha),
-                        String::from_utf8(name)?,
-                    );
+                    if name_only {
+                        println!("{}", String::from_utf8(name)?);
+                    } else {
+                        println!(
+                            "{:<6} {} {}    {}",
+                            String::from_utf8(mode)?,
+                            object_type,
+                            hex::encode(sha),
+                            String::from_utf8(name)?,
+                        );
+                    }
                 }
             }
             _ => {

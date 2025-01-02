@@ -9,6 +9,6 @@ pub fn cat_file(blob_sha: &str) -> anyhow::Result<()> {
     let file = File::open(&path).context("Failed to open file")?;
     let mut zlib = BufReader::new(ZlibDecoder::new(file));
     let object = GitObject::from_file(&mut zlib).context("Failed to read object")?;
-    object.pretty_print()?;
+    object.pretty_print(false)?;
     Ok(())
 }
