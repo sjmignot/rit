@@ -18,7 +18,6 @@ pub fn hash_object(file_path: &str) -> anyhow::Result<()> {
     let hash_folder_name = &hash[..2];
     let hash_file_name = &hash[2..];
     let path = format!(".git/objects/{}/{}", hash_folder_name, hash_file_name);
-
     go.to_file(&path)?;
     println!("{}", hash);
     Ok(())

@@ -9,7 +9,7 @@ pub mod errors;
 pub mod types;
 
 #[derive(Debug, Parser)]
-#[clap(name = "my-app", version)]
+#[clap(name = "rit", version)]
 pub struct App {
     #[clap(subcommand)]
     command: Command,
@@ -19,16 +19,19 @@ pub struct App {
 enum Command {
     /// Init a new git repository
     Init,
+    // cat the contents of a blob
     CatFile {
-        /// The object to display
+        /// The object to display.
         #[clap(long, short = 'p')]
         blob_sha: String,
     },
+    // Hash a file
     HashObject {
-        /// The file to hash
+        /// The file to hash.
         #[clap(long, short = 'w')]
         file: String,
     },
+    // List a tree object.
     LsTree {
         /// The file to hash
         #[clap(long)]
